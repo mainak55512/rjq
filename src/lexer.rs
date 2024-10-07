@@ -26,7 +26,7 @@ pub fn tokenize(source_string: String) -> VecDeque<Token> {
     while cursor < source_string.len() {
         let match_number = Regex::new(r"^\d+\.?\d+").unwrap();
         let match_field_string = Regex::new(r"^[a-zA-Z0-9._]+").unwrap();
-        let match_string = Regex::new(r#"^"[^"]*""#).unwrap();
+        let match_string = Regex::new(r#"^'(.*?)'"#).unwrap();
         let match_binary_operator =
             Regex::new(r"^(^(!=)|^(<=)|^(>=)|^(=)|^(<)|^(>)|^(\&\&)|^(\|\|)|^(\+)|^(\-))").unwrap();
         let match_paren = Regex::new(r"^[\(\)]").unwrap();
@@ -48,7 +48,7 @@ pub fn tokenize(source_string: String) -> VecDeque<Token> {
         } else if match_string.is_match(&source_string[cursor..]) {
             let value = match_string
                 .find(&source_string[cursor..])
-                .map(|x| x.as_str())
+                .map(|x| x.as_str().replace("'", "\""))
                 .unwrap();
             cursor += value.len();
             token_array.push_back(token(TokenType::STRING, value.to_string()));
