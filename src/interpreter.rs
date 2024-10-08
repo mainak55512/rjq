@@ -10,7 +10,7 @@ pub enum RuntimeType {
     Bool(bool),
 }
 
-fn eval_ast_stmt(obj: Value, ast: ASTNode) -> RuntimeType {
+fn eval_ast_stmt(obj: &Value, ast: ASTNode) -> RuntimeType {
     let mut kind = LiteralType::NONE_TYPE;
     match ast {
         ASTNode::PrimarySymbol(ref ast) => {
@@ -41,7 +41,7 @@ fn eval_ast_stmt(obj: Value, ast: ASTNode) -> RuntimeType {
 }
 
 fn _eval_binary_expr(
-    obj: Value,
+    obj: &Value,
     lhs: RuntimeType,
     rhs: RuntimeType,
     operator: String,
@@ -148,33 +148,33 @@ fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: String) -> R
     }
 }
 
-fn eval_binary_expr(obj: Value, ast: ASTNode) -> RuntimeType {
+fn eval_binary_expr(obj: &Value, ast: ASTNode) -> RuntimeType {
     if let ASTNode::BinaryExpr(ref ast) = ast {
         let left = ast.left.clone();
         let right = ast.right.clone();
-        let lhs = eval_ast_stmt(obj.clone(), left);
-        let rhs = eval_ast_stmt(obj.clone(), right);
+        let lhs = eval_ast_stmt(obj, left);
+        let rhs = eval_ast_stmt(obj, right);
         return _eval_binary_expr(obj, lhs, rhs, ast.operator.clone());
     }
     return RuntimeType::Bool(false);
 }
 
-fn eval_logical_expr(obj: Value, ast: ASTNode) -> RuntimeType {
+fn eval_logical_expr(obj: &Value, ast: ASTNode) -> RuntimeType {
     if let ASTNode::BinaryExpr(ref ast) = ast {
         let left = ast.left.clone();
         let right = ast.right.clone();
-        let lhs = eval_ast_stmt(obj.clone(), left);
-        let rhs = eval_ast_stmt(obj.clone(), right);
+        let lhs = eval_ast_stmt(obj, left);
+        let rhs = eval_ast_stmt(obj, right);
         return _eval_logical_expr(lhs, rhs, ast.operator.clone());
     }
     return RuntimeType::Bool(false);
 }
 
-fn _evaluate_(obj: Value, ast: ASTNode) -> RuntimeType {
+fn _evaluate_(obj: &Value, ast: ASTNode) -> RuntimeType {
     eval_ast_stmt(obj, ast)
 }
 
-pub fn eval_query(obj: Value, query_string: String) -> bool {
+pub fn eval_query(obj: &Value, query_string: &String) -> bool {
     let mut tokens = tokenize(query_string);
     let ast = parse_ast(&mut tokens);
     if let RuntimeType::Bool(result) = _evaluate_(obj, ast) {

@@ -19,7 +19,7 @@ fn token(token_type: TokenType, val: String) -> Token {
     return Token { token_type, val };
 }
 
-pub fn tokenize(source_string: String) -> VecDeque<Token> {
+pub fn tokenize(source_string: &String) -> VecDeque<Token> {
     let mut cursor = 0;
     let mut token_array: VecDeque<Token> = VecDeque::new();
 

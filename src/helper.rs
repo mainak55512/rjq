@@ -18,11 +18,11 @@ pub fn get_last_key(field_str: String) -> String {
     let keys = get_param_keys(field_str);
     return keys[keys.len() - 1].clone();
 }
-pub fn get_value_from_obj(obj: Value, field_str: String) -> Value {
+pub fn get_value_from_obj(obj: &Value, field_str: String) -> &Value {
     let keys = get_param_keys(field_str);
     let mut value = obj;
     for val in keys.iter() {
-        value = value[val].clone();
+        value = &value[val];
     }
     return value;
 }

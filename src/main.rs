@@ -5,56 +5,47 @@ mod interpreter;
 mod lexer;
 mod parser;
 
-use std::collections::VecDeque;
-
+use clap::Parser;
 use interpreter::eval_query;
 use serde_json::Value;
+use std::collections::VecDeque;
+use std::fs;
+use std::path::PathBuf;
+
+#[derive(Parser)]
+struct Cli {
+    #[arg(short, long)]
+    load: Option<PathBuf>,
+
+    #[arg(short, long)]
+    query: Option<String>,
+}
 
 fn main() {
+    let cli = Cli::parse();
     let mut result_arr: VecDeque<Value> = VecDeque::new();
-    let query_string = String::from(r#"(id.id1 = 'Mainak123' && name = 'Test') || age > 18"#);
 
-    let data = r#"
-        [{
-            "name": "est",
-            "age": 25,
-            "phones": [
-                "+44 1234567",
-                "+44 2345678"
-            ],
-            "id": {
-                "id1":"Mainak123",
-                "id2": "false"
-            }
-        },{
-            "name": "Test",
-            "age": 15,
-            "phones": [
-                "+44 1234567",
-                "+44 2345678"
-            ],
-            "id": {
-                "id1":"Mainak123",
-                "id2": "false"
-            }
-        }]"#;
-    let v: VecDeque<Value> = serde_json::from_str(data).unwrap();
+    let mut content = String::new();
+    let mut query_string = String::new();
+    if let Some(load) = cli.load.as_deref() {
+        content = fs::read_to_string(load).unwrap();
+    }
+    if let Some(query) = cli.query.as_deref() {
+        query_string = String::from(query);
+    }
+
+    let v: VecDeque<Value> = serde_json::from_str(&content).unwrap();
 
     for obj in v.iter() {
-        if eval_query(obj.clone(), query_string.clone()) {
+        if eval_query(obj, &query_string) {
             result_arr.push_back(obj.clone());
         }
     }
 
     println!(
         "{}",
-        serde_json::to_string(&result_arr).unwrap().to_string()
+        serde_json::to_string_pretty(&result_arr)
+            .unwrap()
+            .to_string()
     );
-
-    /*
-    * Output:
-    *
-    [{"age":25,"id":{"id1":"Mainak123","id2":"false"},"name":"est","phones":["+44 1234567","+44 2345678"]},{"age":15,"id":{"id1":"Mainak123","id2":"false"},"name":"Test","phones":["+44 1234567","+44 2345678"]}]
-    *
-    */
 }
