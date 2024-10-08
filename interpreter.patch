@@ -1,0 +1,205 @@
+diff --git a/src/interpreter.rs b/src/interpreter.rs
+index 94977e5..1970863 100644
+--- a/src/interpreter.rs
++++ b/src/interpreter.rs
+@@ -10,7 +10,7 @@ pub enum RuntimeType {
+     Bool(bool),
+ }
+ 
+-fn eval_ast_stmt(obj: &Value, ast: ASTNode) -> RuntimeType {
++fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
+     let mut kind = LiteralType::NONE_TYPE;
+     match ast {
+         ASTNode::PrimarySymbol(ref ast) => {
+@@ -31,10 +31,10 @@ fn eval_ast_stmt(obj: &Value, ast: ASTNode) -> RuntimeType {
+             // return RuntimeType::Bool(true);
+         }
+         LiteralType::NUMERIC_LITERAL => {
+-            return RuntimeType::Element(ast);
++            return RuntimeType::Element(ast.clone());
+         }
+         LiteralType::STRING_LITERAL => {
+-            return RuntimeType::Element(ast);
++            return RuntimeType::Element(ast.clone());
+         }
+         _ => RuntimeType::Bool(false),
+     }
+@@ -148,37 +148,45 @@ fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: String) -> R
+     }
+ }
+ 
+-fn eval_binary_expr(obj: &Value, ast: ASTNode) -> RuntimeType {
++fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
+     if let ASTNode::BinaryExpr(ref ast) = ast {
+-        let left = ast.left.clone();
+-        let right = ast.right.clone();
+-        let lhs = eval_ast_stmt(obj, left);
+-        let rhs = eval_ast_stmt(obj, right);
++        let lhs = eval_ast_stmt(obj, &ast.left);
++        let rhs = eval_ast_stmt(obj, &ast.right);
+         return _eval_binary_expr(obj, lhs, rhs, ast.operator.clone());
+     }
+     return RuntimeType::Bool(false);
+ }
+ 
+-fn eval_logical_expr(obj: &Value, ast: ASTNode) -> RuntimeType {
++fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
+     if let ASTNode::BinaryExpr(ref ast) = ast {
+-        let left = ast.left.clone();
+-        let right = ast.right.clone();
+-        let lhs = eval_ast_stmt(obj, left);
+-        let rhs = eval_ast_stmt(obj, right);
++        let lhs = eval_ast_stmt(obj, &ast.left);
++        let rhs = eval_ast_stmt(obj, &ast.right);
+         return _eval_logical_expr(lhs, rhs, ast.operator.clone());
+     }
+     return RuntimeType::Bool(false);
+ }
+ 
+-fn _evaluate_(obj: &Value, ast: ASTNode) -> RuntimeType {
++fn _evaluate_(obj: &Value, ast: &ASTNode) -> RuntimeType {
+     eval_ast_stmt(obj, ast)
+ }
+ 
+-pub fn eval_query(obj: &Value, query_string: &String) -> bool {
+-    let mut tokens = tokenize(query_string);
+-    let ast = parse_ast(&mut tokens);
+-    if let RuntimeType::Bool(result) = _evaluate_(obj, ast) {
+-        return result;
++pub struct QueryEvaluator {
++    ast: ASTNode,
++}
++
++impl QueryEvaluator {
++    pub fn new(query_string: &str) -> Self {
++        let mut tokens = tokenize(query_string);
++        let ast = parse_ast(&mut tokens);
++        Self {
++            ast,
++        }
++    }
++
++    pub fn eval(&self, obj: &Value) -> bool {
++        if let RuntimeType::Bool(result) = _evaluate_(obj, &self.ast) {
++            return result;
++        }
++        return false;
+     }
+-    return false;
+ }
+diff --git a/src/lexer.rs b/src/lexer.rs
+index 6ecf317..320bfab 100644
+--- a/src/lexer.rs
++++ b/src/lexer.rs
+@@ -1,5 +1,6 @@
+ use regex::Regex;
+ use std::collections::VecDeque;
++use std::sync::LazyLock;
+ 
+ #[derive(Debug)]
+ pub enum TokenType {
+@@ -19,48 +20,61 @@ fn token(token_type: TokenType, val: String) -> Token {
+     return Token { token_type, val };
+ }
+ 
+-pub fn tokenize(source_string: &String) -> VecDeque<Token> {
++static MATCH_NUMBER: LazyLock<Regex> = LazyLock::new(|| {
++    Regex::new(r"^\d+\.?\d+").unwrap()
++});
++
++static MATCH_FIELD_STRING: LazyLock<Regex> = LazyLock::new(|| {
++    Regex::new(r"^[a-zA-Z0-9._]+").unwrap()
++});
++
++static MATCH_STRING: LazyLock<Regex> = LazyLock::new(|| {
++    Regex::new(r#"^'(.*?)'"#).unwrap()
++});
++
++static MATCH_BINARY_OPERATOR: LazyLock<Regex> = LazyLock::new(|| {
++    Regex::new(r"^(^(!=)|^(<=)|^(>=)|^(=)|^(<)|^(>)|^(\&\&)|^(\|\|)|^(\+)|^(\-))").unwrap()
++});
++
++static MATCH_PAREN: LazyLock<Regex> = LazyLock::new(|| {
++    Regex::new(r"^[\(\)]").unwrap()
++});
++
++pub fn tokenize(source_string: &str) -> VecDeque<Token> {
+     let mut cursor = 0;
+     let mut token_array: VecDeque<Token> = VecDeque::new();
+ 
+     while cursor < source_string.len() {
+-        let match_number = Regex::new(r"^\d+\.?\d+").unwrap();
+-        let match_field_string = Regex::new(r"^[a-zA-Z0-9._]+").unwrap();
+-        let match_string = Regex::new(r#"^'(.*?)'"#).unwrap();
+-        let match_binary_operator =
+-            Regex::new(r"^(^(!=)|^(<=)|^(>=)|^(=)|^(<)|^(>)|^(\&\&)|^(\|\|)|^(\+)|^(\-))").unwrap();
+-        let match_paren = Regex::new(r"^[\(\)]").unwrap();
+-
+-        if match_number.is_match(&source_string[cursor..]) {
+-            let value = match_number
++        if MATCH_NUMBER.is_match(&source_string[cursor..]) {
++            let value = MATCH_NUMBER
+                 .find(&source_string[cursor..])
+                 .map(|x| x.as_str())
+                 .unwrap();
+             cursor += value.len();
+             token_array.push_back(token(TokenType::NUMBER, value.to_string()));
+-        } else if match_field_string.is_match(&source_string[cursor..]) {
+-            let value = match_field_string
++        } else if MATCH_FIELD_STRING.is_match(&source_string[cursor..]) {
++            let value = MATCH_FIELD_STRING
+                 .find(&source_string[cursor..])
+                 .map(|x| x.as_str())
+                 .unwrap();
+             cursor += value.len();
+             token_array.push_back(token(TokenType::STRING, value.to_string()));
+-        } else if match_string.is_match(&source_string[cursor..]) {
+-            let value = match_string
++        } else if MATCH_STRING.is_match(&source_string[cursor..]) {
++            let value = MATCH_STRING
+                 .find(&source_string[cursor..])
+                 .map(|x| x.as_str().replace("'", "\""))
+                 .unwrap();
+             cursor += value.len();
+             token_array.push_back(token(TokenType::STRING, value.to_string()));
+-        } else if match_binary_operator.is_match(&source_string[cursor..]) {
+-            let value = match_binary_operator
++        } else if MATCH_BINARY_OPERATOR.is_match(&source_string[cursor..]) {
++            let value = MATCH_BINARY_OPERATOR
+                 .find(&source_string[cursor..])
+                 .map(|x| x.as_str())
+                 .unwrap();
+             cursor += value.len();
+             token_array.push_back(token(TokenType::BINARY_OPERATOR, value.to_string()));
+-        } else if match_paren.is_match(&source_string[cursor..]) {
+-            let value = match_paren
++        } else if MATCH_PAREN.is_match(&source_string[cursor..]) {
++            let value = MATCH_PAREN
+                 .find(&source_string[cursor..])
+                 .map(|x| x.as_str())
+                 .unwrap();
+diff --git a/src/main.rs b/src/main.rs
+index 9ef9ee1..c8d17d3 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -6,7 +6,7 @@ mod lexer;
+ mod parser;
+ 
+ use clap::Parser;
+-use interpreter::eval_query;
++use interpreter::QueryEvaluator;
+ use serde_json::Value;
+ use std::collections::VecDeque;
+ use std::fs;
+@@ -36,8 +36,10 @@ fn main() {
+ 
+     let v: VecDeque<Value> = serde_json::from_str(&content).unwrap();
+ 
++    let qe = QueryEvaluator::new(&query_string);
++
+     for obj in v.iter() {
+-        if eval_query(obj, &query_string) {
++        if qe.eval(obj) {
+             result_arr.push_back(obj.clone());
+         }
+     }
