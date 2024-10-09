@@ -33,10 +33,9 @@ fn token(token_type: TokenType, val: String) -> Token {
     return Token { token_type, val };
 }
 
-pub fn tokenize(source_string: &String) -> VecDeque<Token> {
+pub fn tokenize(source_string: &str) -> VecDeque<Token> {
     let mut cursor = 0;
     let mut token_array: VecDeque<Token> = VecDeque::new();
-
     while cursor < source_string.len() {
         if MATCH_NUMBER.is_match(&source_string[cursor..]) {
             let value = MATCH_NUMBER

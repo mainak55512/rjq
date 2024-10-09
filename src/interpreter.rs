@@ -24,11 +24,9 @@ fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
     match kind {
         LiteralType::LOGICAL_EXPR => {
             return eval_logical_expr(obj, ast);
-            // return RuntimeType::Bool(true);
         }
         LiteralType::BINARY_EXPR => {
             return eval_binary_expr(obj, ast);
-            // return RuntimeType::Bool(true);
         }
         LiteralType::NUMERIC_LITERAL => {
             return RuntimeType::Element(ast.clone());
@@ -44,25 +42,23 @@ fn _eval_binary_expr(
     obj: &Value,
     lhs: RuntimeType,
     rhs: RuntimeType,
-    operator: String,
+    operator: &str,
 ) -> RuntimeType {
-    let mut left: String = "".to_string();
-    // let mut leftNodeType = LiteralType::NONE_TYPE;
-    let mut right: String = "".to_string();
-    let mut right_node_type = LiteralType::NONE_TYPE;
-    if let RuntimeType::Element(ASTNode::PrimarySymbol(val)) = lhs {
-        left = val.symbol;
-        // leftNodeType = val.kind;
-    }
-    if let RuntimeType::Element(ASTNode::PrimarySymbol(val)) = rhs {
-        right = val.symbol;
-        right_node_type = val.kind;
-    }
+    let left = if let RuntimeType::Element(ASTNode::PrimarySymbol(val)) = &lhs {
+        &val.symbol
+    } else {
+        ""
+    };
+    let (right, right_node_type) = if let RuntimeType::Element(ASTNode::PrimarySymbol(val)) = &rhs {
+        (val.symbol.as_str(), &val.kind)
+    } else {
+        ("", &LiteralType::NONE_TYPE)
+    };
 
-    match operator.as_str() {
+    match operator {
         "=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
+                get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
                     .unwrap()
@@ -70,13 +66,13 @@ fn _eval_binary_expr(
             ),
             _ => {
                 return RuntimeType::Bool(
-                    get_value_from_obj(obj, left).to_string() == right.to_string(),
+                    get_value_from_obj(obj, &left).to_string() == right.to_string(),
                 );
             }
         },
         ">" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
+                get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
                     .unwrap()
@@ -86,7 +82,7 @@ fn _eval_binary_expr(
         },
         "<" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
+                get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
                     .unwrap()
@@ -96,7 +92,7 @@ fn _eval_binary_expr(
         },
         ">=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
+                get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
                     .unwrap()
@@ -106,7 +102,7 @@ fn _eval_binary_expr(
         },
         "<=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
+                get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
                     .unwrap()
@@ -116,7 +112,7 @@ fn _eval_binary_expr(
         },
         "!=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
+                get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
                     .unwrap()
@@ -124,7 +120,7 @@ fn _eval_binary_expr(
             ),
             _ => {
                 return RuntimeType::Bool(
-                    get_value_from_obj(obj, left).to_string() != right.to_string(),
+                    get_value_from_obj(obj, &left).to_string() != right.to_string(),
                 )
             }
         },
@@ -132,7 +128,7 @@ fn _eval_binary_expr(
     }
 }
 
-fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: String) -> RuntimeType {
+fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: &str) -> RuntimeType {
     let mut left = false;
     let mut right = false;
     if let RuntimeType::Bool(val) = lhs {
@@ -141,7 +137,7 @@ fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: String) -> R
     if let RuntimeType::Bool(val) = rhs {
         right = val;
     }
-    match operator.as_str() {
+    match operator {
         "&&" => RuntimeType::Bool(left && right),
         "||" => RuntimeType::Bool(left || right),
         _ => RuntimeType::Bool(false),
@@ -154,7 +150,7 @@ fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
         let right = &ast.right;
         let lhs = eval_ast_stmt(obj, left);
         let rhs = eval_ast_stmt(obj, right);
-        return _eval_binary_expr(obj, lhs, rhs, ast.operator.clone());
+        return _eval_binary_expr(obj, lhs, rhs, &ast.operator);
     }
     return RuntimeType::Bool(false);
 }
@@ -165,7 +161,7 @@ fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
         let right = &ast.right;
         let lhs = eval_ast_stmt(obj, left);
         let rhs = eval_ast_stmt(obj, right);
-        return _eval_logical_expr(lhs, rhs, ast.operator.clone());
+        return _eval_logical_expr(lhs, rhs, &ast.operator);
     }
     return RuntimeType::Bool(false);
 }
@@ -174,7 +170,7 @@ fn _evaluate_(obj: &Value, ast: &ASTNode) -> RuntimeType {
     eval_ast_stmt(obj, ast)
 }
 
-pub fn eval_query(obj: &Value, query_string: &String) -> bool {
+pub fn eval_query(obj: &Value, query_string: &str) -> bool {
     let mut tokens = tokenize(query_string);
     let ast = parse_ast(&mut tokens);
     if let RuntimeType::Bool(result) = _evaluate_(obj, &ast) {
