@@ -97,7 +97,7 @@ Demo data.json:
 rjq query:
 
 ```sh
-rjq --load="test.json" --query="salary < 15000 && score < 2.0 && verified = false" --params="name, address.town, pets"
+rjq --load="data.json" --query="salary < 15000 && score < 2.0 && verified = false" --params="name, address.town, pets"
 ```
 
 output:
