@@ -15,7 +15,7 @@
 ## Usage
 
 ```sh
-rjq --load=&#34;<file path>&#34; --query=&#34;<query string>&#34; --params=&#34;<comma separated parameter names>&#34;
+rjq --load="<file path>" --query="<query string>" --params="<comma separated parameter names>"
 ```
 
 ## Author
