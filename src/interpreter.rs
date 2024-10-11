@@ -11,16 +11,11 @@ pub enum RuntimeType {
 }
 
 fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
-    let mut kind = LiteralType::NONE_TYPE;
-    match ast {
-        ASTNode::PrimarySymbol(ref ast) => {
-            kind = ast.kind.clone();
-        }
-        ASTNode::BinaryExpr(ref ast) => {
-            kind = ast.kind.clone();
-        }
-        ASTNode::NONE_TYPE => {}
-    }
+    let kind = match ast {
+        ASTNode::PrimarySymbol(ref ast) => ast.kind.clone(),
+        ASTNode::BinaryExpr(ref ast) => ast.kind.clone(),
+        ASTNode::NONE_TYPE => LiteralType::NONE_TYPE,
+    };
     match kind {
         LiteralType::LOGICAL_EXPR => {
             return eval_logical_expr(obj, ast);
@@ -61,8 +56,8 @@ fn _eval_binary_expr(
                 get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
-                    == right.parse::<f64>().unwrap(),
+                    .expect("Not a Number")
+                    == right.parse::<f64>().expect("Not a Number"),
             ),
             _ => {
                 return RuntimeType::Bool(
@@ -75,8 +70,8 @@ fn _eval_binary_expr(
                 get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
-                    > right.parse::<f64>().unwrap(),
+                    .expect("Not a Number")
+                    > right.parse::<f64>().expect("Not a Number"),
             ),
             _ => return RuntimeType::Bool(false),
         },
@@ -85,8 +80,8 @@ fn _eval_binary_expr(
                 get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
-                    < right.parse::<f64>().unwrap(),
+                    .expect("Not a Number")
+                    < right.parse::<f64>().expect("Not a Number"),
             ),
             _ => return RuntimeType::Bool(false),
         },
@@ -95,8 +90,8 @@ fn _eval_binary_expr(
                 get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
-                    >= right.parse::<f64>().unwrap(),
+                    .expect("Not a Number")
+                    >= right.parse::<f64>().expect("Not a Number"),
             ),
             _ => return RuntimeType::Bool(false),
         },
@@ -105,8 +100,8 @@ fn _eval_binary_expr(
                 get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
-                    <= right.parse::<f64>().unwrap(),
+                    .expect("Not a Number")
+                    <= right.parse::<f64>().expect("Not a Number"),
             ),
             _ => return RuntimeType::Bool(false),
         },
@@ -115,8 +110,8 @@ fn _eval_binary_expr(
                 get_value_from_obj(obj, &left)
                     .to_string()
                     .parse::<f64>()
-                    .unwrap()
-                    != right.parse::<f64>().unwrap(),
+                    .expect("Not a Number")
+                    != right.parse::<f64>().expect("Not a Number"),
             ),
             _ => {
                 return RuntimeType::Bool(
@@ -129,14 +124,16 @@ fn _eval_binary_expr(
 }
 
 fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: &str) -> RuntimeType {
-    let mut left = false;
-    let mut right = false;
-    if let RuntimeType::Bool(val) = lhs {
-        left = val;
-    }
-    if let RuntimeType::Bool(val) = rhs {
-        right = val;
-    }
+    let left = if let RuntimeType::Bool(val) = lhs {
+        val
+    } else {
+        false
+    };
+    let right = if let RuntimeType::Bool(val) = rhs {
+        val
+    } else {
+        false
+    };
     match operator {
         "&&" => RuntimeType::Bool(left && right),
         "||" => RuntimeType::Bool(left || right),
@@ -146,10 +143,8 @@ fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: &str) -> Run
 
 fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
     if let ASTNode::BinaryExpr(ref ast) = ast {
-        let left = &ast.left;
-        let right = &ast.right;
-        let lhs = eval_ast_stmt(obj, left);
-        let rhs = eval_ast_stmt(obj, right);
+        let lhs = eval_ast_stmt(obj, &ast.left);
+        let rhs = eval_ast_stmt(obj, &ast.right);
         return _eval_binary_expr(obj, lhs, rhs, &ast.operator);
     }
     return RuntimeType::Bool(false);
@@ -157,10 +152,8 @@ fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
 
 fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
     if let ASTNode::BinaryExpr(ref ast) = ast {
-        let left = &ast.left;
-        let right = &ast.right;
-        let lhs = eval_ast_stmt(obj, left);
-        let rhs = eval_ast_stmt(obj, right);
+        let lhs = eval_ast_stmt(obj, &ast.left);
+        let rhs = eval_ast_stmt(obj, &ast.right);
         return _eval_logical_expr(lhs, rhs, &ast.operator);
     }
     return RuntimeType::Bool(false);
@@ -174,7 +167,8 @@ pub fn eval_query(obj: &Value, query_string: &str) -> bool {
     let mut tokens = tokenize(query_string);
     let ast = parse_ast(&mut tokens);
     if let RuntimeType::Bool(result) = _evaluate_(obj, &ast) {
-        return result;
+        result
+    } else {
+        false
     }
-    return false;
 }

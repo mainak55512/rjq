@@ -38,40 +38,60 @@ pub fn tokenize(source_string: &str) -> VecDeque<Token> {
     let mut token_array: VecDeque<Token> = VecDeque::new();
     while cursor < source_string.len() {
         if MATCH_NUMBER.is_match(&source_string[cursor..]) {
-            let value = MATCH_NUMBER
+            match MATCH_NUMBER
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
-                .unwrap();
-            cursor += value.len();
-            token_array.push_back(token(TokenType::NUMBER, value.to_string()));
+            {
+                Some(val) => {
+                    cursor += val.len();
+                    token_array.push_back(token(TokenType::NUMBER, val.to_string()));
+                }
+                None => (),
+            }
         } else if MATCH_FIELD_STRING.is_match(&source_string[cursor..]) {
-            let value = MATCH_FIELD_STRING
+            match MATCH_FIELD_STRING
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
-                .unwrap();
-            cursor += value.len();
-            token_array.push_back(token(TokenType::STRING, value.to_string()));
+            {
+                Some(val) => {
+                    cursor += val.len();
+                    token_array.push_back(token(TokenType::STRING, val.to_string()));
+                }
+                None => (),
+            };
         } else if MATCH_STRING.is_match(&source_string[cursor..]) {
-            let value = MATCH_STRING
+            match MATCH_STRING
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str().replace("'", "\""))
-                .unwrap();
-            cursor += value.len();
-            token_array.push_back(token(TokenType::STRING, value.to_string()));
+            {
+                Some(val) => {
+                    cursor += val.len();
+                    token_array.push_back(token(TokenType::STRING, val));
+                }
+                None => (),
+            };
         } else if MATCH_BINARY_OPERATOR.is_match(&source_string[cursor..]) {
-            let value = MATCH_BINARY_OPERATOR
+            match MATCH_BINARY_OPERATOR
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
-                .unwrap();
-            cursor += value.len();
-            token_array.push_back(token(TokenType::BINARY_OPERATOR, value.to_string()));
+            {
+                Some(val) => {
+                    cursor += val.len();
+                    token_array.push_back(token(TokenType::BINARY_OPERATOR, val.to_string()));
+                }
+                None => (),
+            };
         } else if MATCH_PAREN.is_match(&source_string[cursor..]) {
-            let value = MATCH_PAREN
+            match MATCH_PAREN
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
-                .unwrap();
-            cursor += value.len();
-            token_array.push_back(token(TokenType::PAREN, value.to_string()));
+            {
+                Some(val) => {
+                    cursor += val.len();
+                    token_array.push_back(token(TokenType::PAREN, val.to_string()));
+                }
+                None => (),
+            };
         } else {
             cursor += 1;
         }

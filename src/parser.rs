@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, os::unix::process};
 
 use crate::lexer::{Token, TokenType};
 
@@ -39,19 +39,19 @@ fn parse_primary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
         TokenType::NUMBER => {
             return ASTNode::PrimarySymbol(PrimarySymbol {
                 kind: LiteralType::NUMERIC_LITERAL,
-                symbol: token_array.pop_front().unwrap().val,
+                symbol: token_array.pop_front().expect("NaN").val,
             })
         }
         TokenType::STRING => {
             return ASTNode::PrimarySymbol(PrimarySymbol {
                 kind: LiteralType::STRING_LITERAL,
-                symbol: token_array.pop_front().unwrap().val,
+                symbol: token_array.pop_front().expect("Invalid String").val,
             })
         }
         TokenType::BINARY_OPERATOR => {
             return ASTNode::PrimarySymbol(PrimarySymbol {
                 kind: LiteralType::BINARY_OPERATOR,
-                symbol: token_array.pop_front().unwrap().val,
+                symbol: token_array.pop_front().expect("Invalid Operator").val,
             })
         }
         TokenType::PAREN => {
@@ -73,7 +73,7 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
             || token_array[0].val == "<"
             || token_array[0].val == "!=")
     {
-        let operator = token_array.pop_front().unwrap().val;
+        let operator = token_array.pop_front().expect("Invalid Operator").val;
         let right = parse_primary_expr(token_array);
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
             kind: LiteralType::BINARY_EXPR,
@@ -88,7 +88,7 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
 pub fn parse_ast(token_array: &mut VecDeque<Token>) -> ASTNode {
     let mut left = parse_binary_expr(token_array);
     while token_array.len() > 0 && (token_array[0].val == "&&" || token_array[0].val == "||") {
-        let operator = token_array.pop_front().unwrap().val;
+        let operator = token_array.pop_front().expect("Empty operator").val;
         let right = parse_binary_expr(token_array);
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
             kind: LiteralType::LOGICAL_EXPR,

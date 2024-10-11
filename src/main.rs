@@ -32,12 +32,14 @@ fn main() {
     let cli = Cli::parse();
 
     let content = if let Some(load) = cli.load.as_deref() {
-        fs::read_to_string(load).unwrap()
+        fs::read_to_string(load).expect("Could't read file content")
     } else {
         io::stdin()
             .lock()
             .lines()
-            .fold("".to_string(), |acc, line| acc + &line.unwrap() + "\n")
+            .fold("".to_string(), |acc, line| {
+                acc + &line.expect("Couldn't read from stdin") + "\n"
+            })
     };
     let query_string = if let Some(query) = cli.query.as_deref() {
         query
@@ -51,10 +53,15 @@ fn main() {
         Vec::<&str>::new()
     };
 
-    let v: VecDeque<Value> = serde_json::from_str(&content).unwrap();
+    let v: VecDeque<Value> = serde_json::from_str(&content).expect("Couldn't parse to JSON");
 
     if query_string.is_empty() && params.is_empty() {
-        println!("{}", serde_json::to_string_pretty(&v).unwrap().to_string());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&v)
+                .expect("Can't convert JSON to string")
+                .to_string()
+        );
     } else if params.is_empty() {
         let mut result_arr: VecDeque<Value> = VecDeque::new();
         for obj in v.iter() {
@@ -66,7 +73,7 @@ fn main() {
         println!(
             "{}",
             serde_json::to_string_pretty(&result_arr)
-                .unwrap()
+                .expect("Can't convert JSON to string")
                 .to_string()
         );
     } else if query_string.is_empty() {
@@ -84,7 +91,7 @@ fn main() {
         println!(
             "{}",
             serde_json::to_string_pretty(&result_arr)
-                .unwrap()
+                .expect("Can't convert JSON to string")
                 .to_string()
         );
     } else {
@@ -104,7 +111,7 @@ fn main() {
         println!(
             "{}",
             serde_json::to_string_pretty(&result_arr)
-                .unwrap()
+                .expect("Can't convert JSON to string")
                 .to_string()
         );
     }
