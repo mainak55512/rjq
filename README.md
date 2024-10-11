@@ -158,20 +158,7 @@ output:
 
 ## Benchmark
 
-```sh
-❯ hyperfine -N --warmup 10 'rjq --load="test.json" --query="salary < 15000 && score < 2.0 && verified = false"' "jq '.[] | select(.salary<15000 and .score<2.0 and .verified==false)' test.json"
-Benchmark 1: rjq --load="test.json" --query="salary < 15000 && score < 2.0 && verified = false"
-  Time (mean ± σ):     163.0 ms ±   0.9 ms    [User: 125.6 ms, System: 37.1 ms]
-  Range (min … max):   161.9 ms … 164.8 ms    18 runs
-
-Benchmark 2: jq '.[] | select(.salary<15000 and .score<2.0 and .verified==false)' test.json
-  Time (mean ± σ):     332.3 ms ±   2.1 ms    [User: 306.4 ms, System: 25.6 ms]
-  Range (min … max):   328.9 ms … 335.8 ms    10 runs
-
-Summary
-  'rjq --load="test.json" --query="salary < 15000 && score < 2.0 && verified = false"' ran
-    2.04 ± 0.02 times faster than 'jq '.[] | select(.salary<15000 and .score<2.0 and .verified==false)' test.json'
-```
+![benchmark](./media/rjq_benchmark.png)
 
 ## Author
 
