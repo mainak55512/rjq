@@ -12,6 +12,11 @@
 
 ### 🏠 [Homepage](https://github.com/mainak55512/rjq)
 
+## Getting started
+
+Pre-built binaries for Linux and Windows are available in the [releases section](https://github.com/mainak55512/rjq).
+Download suitable binary according to your OS configuration and add the path to environment variables for easy access across the system.
+
 ## Usage
 
 ```sh
