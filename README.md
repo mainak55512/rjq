@@ -15,6 +15,9 @@
   <a href="#" target="_blank">
     <img alt="Version" src="https://img.shields.io/github/v/tag/mainak55512/rjq" />
   </a>
+  <a href="#" target="_blank">
+    <img alt="Issues" src="https://img.shields.io/github/issues/mainak55512/rjq" />
+  </a>
 </p>
 
 > Simple and fast JSON filtering tool written in Rust.
