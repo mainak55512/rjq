@@ -32,7 +32,13 @@ fn main() {
     let cli = Cli::parse();
 
     let content = if let Some(load) = cli.load.as_deref() {
-        fs::read_to_string(load).expect("Could't read file content")
+        match fs::read_to_string(load) {
+            Ok(val) => val,
+            Err(_e) => {
+                println!("Couldn't read content from file");
+                std::process::exit(1);
+            }
+        }
     } else {
         io::stdin()
             .lock()
