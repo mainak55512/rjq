@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to rjq 👋</h1>
 <p>
-  <a href="github.com/mainak55512/rjq" target="_blank">
+  <a href="https://mainak55512.github.io/rjq/" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
   </a>
   <a href="#" target="_blank">
@@ -23,6 +23,8 @@
 > Simple and fast JSON filtering tool written in Rust.
 
 ### 🏠 [Homepage](https://github.com/mainak55512/rjq)
+
+### 📄[Documentation](https://mainak55512.github.io/rjq/)
 
 ## Getting started 🚴
 
