@@ -1,5 +1,6 @@
 /target
 
 /.cache
-/venv
-/site
+/docs/.cache
+/docs/venv
+/docs/site
