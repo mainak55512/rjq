@@ -35,7 +35,7 @@ fn main() {
         match fs::read_to_string(load) {
             Ok(val) => val,
             Err(_e) => {
-                println!("Couldn't read content from file");
+                println!("File not found or couldn't read content from file");
                 std::process::exit(1);
             }
         }
