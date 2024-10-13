@@ -10,7 +10,7 @@
     <img alt="Repo size" src="https://img.shields.io/github/repo-size/mainak55512/rjq" />
   </a>
   <a href="#" target="_blank">
-    <img alt="Downloads" src="https://img.shields.io/github/downloads/mainak55512/rjq/v0.1.0-alpha/total" />
+    <img alt="Downloads" src="https://img.shields.io/github/downloads/mainak55512/rjq/v0.1.1/total" />
   </a>
   <a href="#" target="_blank">
     <img alt="Version" src="https://img.shields.io/github/v/tag/mainak55512/rjq" />
