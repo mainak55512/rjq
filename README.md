@@ -24,7 +24,7 @@
 
 ### 🏠 [Homepage](https://github.com/mainak55512/rjq)
 
-### 📄[Documentation](https://mainak55512.github.io/rjq/)
+### 📄 [Documentation](https://mainak55512.github.io/rjq/)
 
 ## Getting started 🚴
 
