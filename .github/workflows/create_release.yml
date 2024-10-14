@@ -28,8 +28,7 @@ jobs:
         release_name: Release ${{ github.ref }}
         body: |
           Changes in this Release
-          - First Change
-          - Second Change
+          - https://github.com/mainak55512/rjq/commits/${{ github.ref }}
         draft: false
         prerelease: false
     - name: Upload Release Asset Linux
