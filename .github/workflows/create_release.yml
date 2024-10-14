@@ -31,18 +31,24 @@ jobs:
           - Second Change
         draft: false
         prerelease: false
-    - name: Upload Release Asset
-      id: upload-release-asset 
+    - name: Upload Release Asset Linux
+      id: upload-release-asset-linux
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          - upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: ./rjq_linux_amd64.tar.gz
-            asset_name: rjq_linux_amd64.tar.gz
-            asset_content_type: application/tar.gz
-          - upload_url: ${{ steps.create_release.outputs.upload_url }}
-            asset_path: ./rjq_win_x86_64.zip
-            asset_name: rjq_win_x86_64.zip
-            asset_content_type: application/zip
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./rjq_linux_amd64.tar.gz
+        asset_name: rjq_linux_amd64.tar.gz
+        asset_content_type: application/x-tar
+    - name: Upload Release Asset Windows
+      id: upload-release-asset-windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./rjq_win_x86_64.zip
+        asset_name: rjq_win_x86_64.zip
+        asset_content_type: application/zip
 
