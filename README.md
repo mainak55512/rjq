@@ -10,7 +10,7 @@
     <img alt="Repo size" src="https://img.shields.io/github/repo-size/mainak55512/rjq" />
   </a>
   <a href="#" target="_blank">
-    <img alt="Downloads" src="https://img.shields.io/github/downloads/mainak55512/rjq/v0.1.10/total" />
+    <img alt="Downloads" src="https://img.shields.io/github/downloads/mainak55512/rjq/v0.1.11/total" />
   </a>
   <a href="#" target="_blank">
     <img alt="Version" src="https://img.shields.io/github/v/tag/mainak55512/rjq" />
@@ -28,7 +28,7 @@
 
 ## Getting started 🚴
 
-Pre-built binaries for Linux and Windows are available in the [releases section](https://github.com/mainak55512/rjq).
+Pre-built binaries for Linux and Windows are available in the [releases section](https://github.com/mainak55512/rjq/releases).
 Download suitable binary according to your OS configuration and add the path to environment variables for easy access across the system.
 
 ## Usage 🔧
