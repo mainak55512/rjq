@@ -1,0 +1,48 @@
+name: Create release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build for Linux
+      uses: actions/checkout@v4
+      run: cargo build --release; cargo build --release --target x86_64-pc-windows-gnu; tar cvfj rjq_linux_amd64.tar.gz target/release/rjq; tar cvfj rjq_win_x86_64.zip target/x86_64-pc-windows-gnu/release/rjq.exe; rm -rf target/
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Changes in this Release
+          - First Change
+          - Second Change
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          - upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: ./rjq_linux_amd64.tar.gz
+            asset_name: rjq_linux_amd64.tar.gz
+            asset_content_type: application/tar.gz
+          - upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: ./rjq_win_x86_64.zip
+            asset_name: rjq_win_x86_64.zip
+            asset_content_type: application/zip
+
