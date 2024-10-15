@@ -34,7 +34,7 @@ pub struct BinaryExpr {
 }
 
 fn parse_primary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
-    let tk: &TokenType = &token_array[0].token_type;
+    let tk = &token_array[0].token_type;
     match tk {
         TokenType::Number => ASTNode::PrimarySymbol(PrimarySymbol {
             kind: LiteralType::NumericLiteral,

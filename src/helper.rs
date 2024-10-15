@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use serde_json::Value;
 
 fn get_param_keys(field_str: &str) -> VecDeque<&str> {
-    let mut keys: VecDeque<&str> = VecDeque::new();
+    let mut keys = VecDeque::new();
     keys.push_back(field_str);
     if field_str.contains(".") {
         keys = field_str.split(".").collect::<VecDeque<&str>>();

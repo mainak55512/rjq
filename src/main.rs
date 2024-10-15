@@ -49,10 +49,10 @@ fn main() {
     };
     let query_string = cli.query.as_deref().unwrap_or_default();
 
-    let params: Vec<&str> = if let Some(params_list) = cli.params.as_deref() {
+    let params = if let Some(params_list) = cli.params.as_deref() {
         params_list.split(",").map(|x| x.trim()).collect()
     } else {
-        Vec::<&str>::new()
+        Vec::new()
     };
 
     let v: VecDeque<Value> = serde_json::from_str(&content).expect("Couldn't parse to JSON");
@@ -63,7 +63,7 @@ fn main() {
             serde_json::to_string_pretty(&v).expect("Can't convert JSON to string")
         );
     } else if params.is_empty() {
-        let mut result_arr: VecDeque<Value> = VecDeque::new();
+        let mut result_arr = VecDeque::new();
         for obj in v.iter() {
             if eval_query(obj, query_string) {
                 result_arr.push_back(obj.clone());
@@ -75,7 +75,7 @@ fn main() {
             serde_json::to_string_pretty(&result_arr).expect("Can't convert JSON to string")
         );
     } else if query_string.is_empty() {
-        let mut result_arr: VecDeque<Value> = VecDeque::new();
+        let mut result_arr = VecDeque::new();
         for obj in v.iter() {
             let mut entry = serde_json::Map::new();
             for item in &params {
@@ -91,7 +91,7 @@ fn main() {
             serde_json::to_string_pretty(&result_arr).expect("Can't convert JSON to string")
         );
     } else {
-        let mut result_arr: VecDeque<Value> = VecDeque::new();
+        let mut result_arr = VecDeque::new();
         for obj in v.iter() {
             if eval_query(obj, query_string) {
                 let mut entry = serde_json::Map::new();
