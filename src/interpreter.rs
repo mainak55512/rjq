@@ -1,7 +1,6 @@
 use crate::{
     helper::get_value_from_obj,
-    lexer::tokenize,
-    parser::{parse_ast, ASTNode, LiteralType},
+    parser::{ASTNode, LiteralType},
 };
 use serde_json::Value;
 
@@ -23,6 +22,24 @@ fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
         LiteralType::StringLiteral => RuntimeType::Element(ast.clone()),
         _ => RuntimeType::Bool(false),
     }
+}
+
+fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
+    if let ASTNode::BinaryExpr(ref ast) = ast {
+        let lhs = eval_ast_stmt(obj, &ast.left);
+        let rhs = eval_ast_stmt(obj, &ast.right);
+        return _eval_logical_expr(lhs, rhs, &ast.operator);
+    }
+    RuntimeType::Bool(false)
+}
+
+fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
+    if let ASTNode::BinaryExpr(ref ast) = ast {
+        let lhs = eval_ast_stmt(obj, &ast.left);
+        let rhs = eval_ast_stmt(obj, &ast.right);
+        return _eval_binary_expr(obj, lhs, rhs, &ast.operator);
+    }
+    RuntimeType::Bool(false)
 }
 
 fn _eval_binary_expr(
@@ -123,22 +140,4 @@ fn _eval_logical_expr(lhs: RuntimeType, rhs: RuntimeType, operator: &str) -> Run
         "||" => RuntimeType::Bool(left || right),
         _ => RuntimeType::Bool(false),
     }
-}
-
-fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
-    if let ASTNode::BinaryExpr(ref ast) = ast {
-        let lhs = eval_ast_stmt(obj, &ast.left);
-        let rhs = eval_ast_stmt(obj, &ast.right);
-        return _eval_binary_expr(obj, lhs, rhs, &ast.operator);
-    }
-    RuntimeType::Bool(false)
-}
-
-fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
-    if let ASTNode::BinaryExpr(ref ast) = ast {
-        let lhs = eval_ast_stmt(obj, &ast.left);
-        let rhs = eval_ast_stmt(obj, &ast.right);
-        return _eval_logical_expr(lhs, rhs, &ast.operator);
-    }
-    RuntimeType::Bool(false)
 }
