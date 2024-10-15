@@ -1,20 +1,15 @@
-#[allow(dead_code)]
-#[allow(non_camel_case_types)]
-mod helper;
-mod interpreter;
-mod lexer;
-mod parser;
+mod query;
+mod utils;
 
 use clap::Parser;
-use helper::get_last_key;
-use helper::get_value_from_obj;
-use interpreter::eval_query;
+use query::Query;
 use serde_json::Value;
-use std::collections::VecDeque;
 use std::fs;
 use std::io;
 use std::io::BufRead;
 use std::path::PathBuf;
+use utils::get_last_key;
+use utils::get_value_from_obj;
 
 #[derive(Parser)]
 struct Cli {
@@ -28,97 +23,54 @@ struct Cli {
     params: Option<String>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let content = if let Some(load) = cli.load.as_deref() {
-        match fs::read_to_string(load) {
-            Ok(val) => val,
-            Err(_e) => {
-                println!("File not found or couldn't read content from file");
-                std::process::exit(1);
-            }
-        }
+        fs::read_to_string(load).map_err(|err| err.to_string())?
     } else {
         io::stdin()
             .lock()
             .lines()
-            .fold("".to_string(), |acc, line| {
-                acc + &line.expect("Couldn't read from stdin") + "\n"
-            })
+            .map(|x| x.expect("Couldn't read from stdin"))
+            .collect()
     };
-    let query_string = if let Some(query) = cli.query.as_deref() {
-        query
+    let content = serde_json::from_str::<Vec<Value>>(&content)?;
+
+    let query_string = cli.query.as_deref().unwrap_or_default();
+    let query = Query::new(query_string);
+
+    let params = cli.params.unwrap_or_default();
+    let params = params
+        .split(",")
+        .map(|x| x.trim())
+        .filter(|x| !x.is_empty())
+        .collect::<Vec<_>>();
+
+    // create a filter closure that applies the params.
+    let filter: &dyn Fn(&Value) -> Value = if params.is_empty() {
+        &|obj| obj.clone()
     } else {
-        ""
-    };
-
-    let params: Vec<&str> = if let Some(params_list) = cli.params.as_deref() {
-        params_list.split(",").map(|x| x.trim()).collect()
-    } else {
-        Vec::<&str>::new()
-    };
-
-    let v: VecDeque<Value> = serde_json::from_str(&content).expect("Couldn't parse to JSON");
-
-    if query_string.is_empty() && params.is_empty() {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&v)
-                .expect("Can't convert JSON to string")
-                .to_string()
-        );
-    } else if params.is_empty() {
-        let mut result_arr: VecDeque<Value> = VecDeque::new();
-        for obj in v.iter() {
-            if eval_query(obj, query_string) {
-                result_arr.push_back(obj.clone());
-            }
-        }
-
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&result_arr)
-                .expect("Can't convert JSON to string")
-                .to_string()
-        );
-    } else if query_string.is_empty() {
-        let mut result_arr: VecDeque<Value> = VecDeque::new();
-        for obj in v.iter() {
-            let mut entry = serde_json::Map::new();
+        &|obj| {
+            let mut map = serde_json::Map::new();
             for item in &params {
-                entry.insert(
+                map.insert(
                     get_last_key(item).to_string(),
                     get_value_from_obj(obj, item).clone(),
                 );
             }
-            result_arr.push_back(Value::Object(entry));
+            Value::Object(map)
         }
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&result_arr)
-                .expect("Can't convert JSON to string")
-                .to_string()
-        );
-    } else {
-        let mut result_arr: VecDeque<Value> = VecDeque::new();
-        for obj in v.iter() {
-            if eval_query(obj, query_string) {
-                let mut entry = serde_json::Map::new();
-                for item in &params {
-                    entry.insert(
-                        get_last_key(item).to_string(),
-                        get_value_from_obj(obj, item).clone(),
-                    );
-                }
-                result_arr.push_back(Value::Object(entry));
-            }
+    };
+
+    // apply the query and params to content.
+    let mut output = Vec::new();
+    for obj in &content {
+        if query.eval(obj) {
+            output.push(filter(obj));
         }
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&result_arr)
-                .expect("Can't convert JSON to string")
-                .to_string()
-        );
     }
+    println!("{}", serde_json::to_string_pretty(&output)?);
+
+    Ok(())
 }
