@@ -1,13 +1,7 @@
-mod helper;
-mod interpreter;
-mod lexer;
-mod parser;
 mod query;
+mod utils;
 
 use clap::Parser;
-use helper::get_last_key;
-use helper::get_value_from_obj;
-use interpreter::eval_query;
 use query::Query;
 use serde_json::Value;
 use std::collections::VecDeque;
@@ -15,6 +9,8 @@ use std::fs;
 use std::io;
 use std::io::BufRead;
 use std::path::PathBuf;
+use utils::get_last_key;
+use utils::get_value_from_obj;
 
 #[derive(Parser)]
 struct Cli {
@@ -63,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else if params.is_empty() {
         let mut result_arr = VecDeque::new();
         for obj in &content {
-            if eval_query(obj, &query) {
+            if query.eval(obj) {
                 result_arr.push_back(obj.clone());
             }
         }
@@ -91,7 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         let mut result_arr = VecDeque::new();
         for obj in &content {
-            if eval_query(obj, &query) {
+            if query.eval(obj) {
                 let mut entry = serde_json::Map::new();
                 for item in &params {
                     entry.insert(

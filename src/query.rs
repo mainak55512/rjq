@@ -1,25 +1,26 @@
-use crate::interpreter::RuntimeType;
-use crate::lexer;
-use crate::lexer::Token;
-use crate::parser::parse_ast;
+mod interpreter;
+mod lexer;
+mod parser;
+
+use crate::query::parser::ASTNode;
+use interpreter::RuntimeType;
+use parser::parse_ast;
 use serde_json::Value;
-use std::collections::VecDeque;
 
 #[derive(Debug)]
 pub struct Query {
-    tokens: VecDeque<Token>,
+    ast: ASTNode,
 }
 
 impl Query {
     pub fn new(query: &str) -> Self {
-        let tokens = lexer::tokenize(query);
-        Self { tokens }
+        let mut tokens = lexer::tokenize(query);
+        let ast = parse_ast(&mut tokens);
+        Self { ast }
     }
 
     pub fn eval(&self, obj: &Value) -> bool {
-        let mut tokens = self.tokens.clone();
-        let ast = parse_ast(&mut tokens);
-        if let RuntimeType::Bool(result) = interpreter::eval_ast_stmt(obj, &ast) {
+        if let RuntimeType::Bool(result) = interpreter::eval_ast_stmt(obj, &self.ast) {
             result
         } else {
             false

@@ -1,7 +1,5 @@
-use crate::{
-    helper::get_value_from_obj,
-    parser::{ASTNode, LiteralType},
-};
+use super::parser::{ASTNode, LiteralType};
+use crate::utils::get_value_from_obj;
 use serde_json::Value;
 
 pub enum RuntimeType {
@@ -9,7 +7,7 @@ pub enum RuntimeType {
     Bool(bool),
 }
 
-fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
+pub(super) fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
     let kind = match ast {
         ASTNode::PrimarySymbol(ref ast) => ast.kind.clone(),
         ASTNode::BinaryExpr(ref ast) => ast.kind.clone(),
