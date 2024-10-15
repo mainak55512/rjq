@@ -17,18 +17,10 @@ fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
         ASTNode::NONE_TYPE => LiteralType::NONE_TYPE,
     };
     match kind {
-        LiteralType::LOGICAL_EXPR => {
-            return eval_logical_expr(obj, ast);
-        }
-        LiteralType::BINARY_EXPR => {
-            return eval_binary_expr(obj, ast);
-        }
-        LiteralType::NUMERIC_LITERAL => {
-            return RuntimeType::Element(ast.clone());
-        }
-        LiteralType::STRING_LITERAL => {
-            return RuntimeType::Element(ast.clone());
-        }
+        LiteralType::LOGICAL_EXPR => eval_logical_expr(obj, ast),
+        LiteralType::BINARY_EXPR => eval_binary_expr(obj, ast),
+        LiteralType::NUMERIC_LITERAL => RuntimeType::Element(ast.clone()),
+        LiteralType::STRING_LITERAL => RuntimeType::Element(ast.clone()),
         _ => RuntimeType::Bool(false),
     }
 }
@@ -53,71 +45,63 @@ fn _eval_binary_expr(
     match operator {
         "=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, &left)
+                get_value_from_obj(obj, left)
                     .to_string()
                     .parse::<f64>()
                     .expect("Not a Number")
                     == right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => {
-                return RuntimeType::Bool(
-                    get_value_from_obj(obj, &left).to_string() == right.to_string(),
-                );
-            }
+            _ => RuntimeType::Bool(get_value_from_obj(obj, &left).to_string() == right.to_string()),
         },
         ">" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, &left)
+                get_value_from_obj(obj, left)
                     .to_string()
                     .parse::<f64>()
                     .expect("Not a Number")
                     > right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => return RuntimeType::Bool(false),
+            _ => RuntimeType::Bool(false),
         },
         "<" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, &left)
+                get_value_from_obj(obj, left)
                     .to_string()
                     .parse::<f64>()
                     .expect("Not a Number")
                     < right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => return RuntimeType::Bool(false),
+            _ => RuntimeType::Bool(false),
         },
         ">=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, &left)
+                get_value_from_obj(obj, left)
                     .to_string()
                     .parse::<f64>()
                     .expect("Not a Number")
                     >= right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => return RuntimeType::Bool(false),
+            _ => RuntimeType::Bool(false),
         },
         "<=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, &left)
+                get_value_from_obj(obj, left)
                     .to_string()
                     .parse::<f64>()
                     .expect("Not a Number")
                     <= right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => return RuntimeType::Bool(false),
+            _ => RuntimeType::Bool(false),
         },
         "!=" => match right_node_type {
             LiteralType::NUMERIC_LITERAL => RuntimeType::Bool(
-                get_value_from_obj(obj, &left)
+                get_value_from_obj(obj, left)
                     .to_string()
                     .parse::<f64>()
                     .expect("Not a Number")
                     != right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => {
-                return RuntimeType::Bool(
-                    get_value_from_obj(obj, &left).to_string() != right.to_string(),
-                )
-            }
+            _ => RuntimeType::Bool(get_value_from_obj(obj, &left).to_string() != right.to_string()),
         },
         _ => RuntimeType::Bool(false),
     }
@@ -147,7 +131,7 @@ fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
         let rhs = eval_ast_stmt(obj, &ast.right);
         return _eval_binary_expr(obj, lhs, rhs, &ast.operator);
     }
-    return RuntimeType::Bool(false);
+    RuntimeType::Bool(false)
 }
 
 fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
@@ -156,7 +140,7 @@ fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
         let rhs = eval_ast_stmt(obj, &ast.right);
         return _eval_logical_expr(lhs, rhs, &ast.operator);
     }
-    return RuntimeType::Bool(false);
+    RuntimeType::Bool(false)
 }
 
 fn _evaluate_(obj: &Value, ast: &ASTNode) -> RuntimeType {

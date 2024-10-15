@@ -4,10 +4,10 @@ use std::sync::LazyLock;
 
 #[derive(Debug)]
 pub enum TokenType {
-    NUMBER,
-    STRING,
-    PAREN,
-    BINARY_OPERATOR,
+    Number,
+    String,
+    Paren,
+    Binary,
 }
 
 #[derive(Debug)]
@@ -24,13 +24,13 @@ static MATCH_FIELD_STRING: LazyLock<Regex> =
 static MATCH_STRING: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"^'(.*?)'"#).unwrap());
 
 static MATCH_BINARY_OPERATOR: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^(^(!=)|^(<=)|^(>=)|^(=)|^(<)|^(>)|^(\&\&)|^(\|\|)|^(\+)|^(\-))").unwrap()
+    Regex::new(r"^(^(!=)|^(<=)|^(>=)|^(=)|^(<)|^(>)|^(&&)|^(\|\|)|^(\+)|^(-))").unwrap()
 });
 
-static MATCH_PAREN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[\(\)]").unwrap());
+static MATCH_PAREN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[()]").unwrap());
 
 fn token(token_type: TokenType, val: String) -> Token {
-    return Token { token_type, val };
+    Token { token_type, val }
 }
 
 pub fn tokenize(source_string: &str) -> VecDeque<Token> {
@@ -38,63 +38,48 @@ pub fn tokenize(source_string: &str) -> VecDeque<Token> {
     let mut token_array: VecDeque<Token> = VecDeque::new();
     while cursor < source_string.len() {
         if MATCH_NUMBER.is_match(&source_string[cursor..]) {
-            match MATCH_NUMBER
+            if let Some(val) = MATCH_NUMBER
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
             {
-                Some(val) => {
-                    cursor += val.len();
-                    token_array.push_back(token(TokenType::NUMBER, val.to_string()));
-                }
-                None => (),
+                cursor += val.len();
+                token_array.push_back(token(TokenType::Number, val.to_string()));
             }
         } else if MATCH_FIELD_STRING.is_match(&source_string[cursor..]) {
-            match MATCH_FIELD_STRING
+            if let Some(val) = MATCH_FIELD_STRING
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
             {
-                Some(val) => {
-                    cursor += val.len();
-                    token_array.push_back(token(TokenType::STRING, val.to_string()));
-                }
-                None => (),
+                cursor += val.len();
+                token_array.push_back(token(TokenType::String, val.to_string()));
             };
         } else if MATCH_STRING.is_match(&source_string[cursor..]) {
-            match MATCH_STRING
+            if let Some(val) = MATCH_STRING
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str().replace("'", "\""))
             {
-                Some(val) => {
-                    cursor += val.len();
-                    token_array.push_back(token(TokenType::STRING, val));
-                }
-                None => (),
+                cursor += val.len();
+                token_array.push_back(token(TokenType::String, val));
             };
         } else if MATCH_BINARY_OPERATOR.is_match(&source_string[cursor..]) {
-            match MATCH_BINARY_OPERATOR
+            if let Some(val) = MATCH_BINARY_OPERATOR
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
             {
-                Some(val) => {
-                    cursor += val.len();
-                    token_array.push_back(token(TokenType::BINARY_OPERATOR, val.to_string()));
-                }
-                None => (),
+                cursor += val.len();
+                token_array.push_back(token(TokenType::Binary, val.to_string()));
             };
         } else if MATCH_PAREN.is_match(&source_string[cursor..]) {
-            match MATCH_PAREN
+            if let Some(val) = MATCH_PAREN
                 .find(&source_string[cursor..])
                 .map(|x| x.as_str())
             {
-                Some(val) => {
-                    cursor += val.len();
-                    token_array.push_back(token(TokenType::PAREN, val.to_string()));
-                }
-                None => (),
+                cursor += val.len();
+                token_array.push_back(token(TokenType::Paren, val.to_string()));
             };
         } else {
             cursor += 1;
         }
     }
-    return token_array;
+    token_array
 }

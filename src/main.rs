@@ -47,11 +47,7 @@ fn main() {
                 acc + &line.expect("Couldn't read from stdin") + "\n"
             })
     };
-    let query_string = if let Some(query) = cli.query.as_deref() {
-        query
-    } else {
-        ""
-    };
+    let query_string = cli.query.as_deref().unwrap_or_default();
 
     let params: Vec<&str> = if let Some(params_list) = cli.params.as_deref() {
         params_list.split(",").map(|x| x.trim()).collect()
@@ -64,9 +60,7 @@ fn main() {
     if query_string.is_empty() && params.is_empty() {
         println!(
             "{}",
-            serde_json::to_string_pretty(&v)
-                .expect("Can't convert JSON to string")
-                .to_string()
+            serde_json::to_string_pretty(&v).expect("Can't convert JSON to string")
         );
     } else if params.is_empty() {
         let mut result_arr: VecDeque<Value> = VecDeque::new();
@@ -78,9 +72,7 @@ fn main() {
 
         println!(
             "{}",
-            serde_json::to_string_pretty(&result_arr)
-                .expect("Can't convert JSON to string")
-                .to_string()
+            serde_json::to_string_pretty(&result_arr).expect("Can't convert JSON to string")
         );
     } else if query_string.is_empty() {
         let mut result_arr: VecDeque<Value> = VecDeque::new();
@@ -96,9 +88,7 @@ fn main() {
         }
         println!(
             "{}",
-            serde_json::to_string_pretty(&result_arr)
-                .expect("Can't convert JSON to string")
-                .to_string()
+            serde_json::to_string_pretty(&result_arr).expect("Can't convert JSON to string")
         );
     } else {
         let mut result_arr: VecDeque<Value> = VecDeque::new();
@@ -116,9 +106,7 @@ fn main() {
         }
         println!(
             "{}",
-            serde_json::to_string_pretty(&result_arr)
-                .expect("Can't convert JSON to string")
-                .to_string()
+            serde_json::to_string_pretty(&result_arr).expect("Can't convert JSON to string")
         );
     }
 }

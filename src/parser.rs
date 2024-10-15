@@ -36,36 +36,30 @@ pub struct BinaryExpr {
 fn parse_primary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
     let tk: &TokenType = &token_array[0].token_type;
     match tk {
-        TokenType::NUMBER => {
-            return ASTNode::PrimarySymbol(PrimarySymbol {
-                kind: LiteralType::NUMERIC_LITERAL,
-                symbol: token_array.pop_front().expect("NaN").val,
-            })
-        }
-        TokenType::STRING => {
-            return ASTNode::PrimarySymbol(PrimarySymbol {
-                kind: LiteralType::STRING_LITERAL,
-                symbol: token_array.pop_front().expect("Invalid String").val,
-            })
-        }
-        TokenType::BINARY_OPERATOR => {
-            return ASTNode::PrimarySymbol(PrimarySymbol {
-                kind: LiteralType::BINARY_OPERATOR,
-                symbol: token_array.pop_front().expect("Invalid Operator").val,
-            })
-        }
-        TokenType::PAREN => {
+        TokenType::Number => ASTNode::PrimarySymbol(PrimarySymbol {
+            kind: LiteralType::NUMERIC_LITERAL,
+            symbol: token_array.pop_front().expect("NaN").val,
+        }),
+        TokenType::String => ASTNode::PrimarySymbol(PrimarySymbol {
+            kind: LiteralType::STRING_LITERAL,
+            symbol: token_array.pop_front().expect("Invalid String").val,
+        }),
+        TokenType::Binary => ASTNode::PrimarySymbol(PrimarySymbol {
+            kind: LiteralType::BINARY_OPERATOR,
+            symbol: token_array.pop_front().expect("Invalid Operator").val,
+        }),
+        TokenType::Paren => {
             token_array.pop_front();
             let value = parse_ast(token_array);
             token_array.pop_front();
-            return value;
+            value
         }
     }
 }
 
 fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
     let mut left = parse_primary_expr(token_array);
-    while token_array.len() > 0
+    while !token_array.is_empty()
         && (token_array[0].val == "="
             || token_array[0].val == ">="
             || token_array[0].val == "<="
@@ -82,18 +76,18 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
             operator,
         }))
     }
-    return left;
+    left
 }
 
 pub fn parse_ast(token_array: &mut VecDeque<Token>) -> ASTNode {
     let mut left = parse_binary_expr(token_array);
-    if token_array.len() > 0 && token_array[0].val != "&&" && token_array[0].val != "||" {
+    if !token_array.is_empty() && token_array[0].val != "&&" && token_array[0].val != "||" {
         println!("Query is invalid");
         std::process::exit(1);
     }
-    while token_array.len() > 0 && (token_array[0].val == "&&" || token_array[0].val == "||") {
+    while !token_array.is_empty() && (token_array[0].val == "&&" || token_array[0].val == "||") {
         let operator = token_array.pop_front().expect("Empty operator").val;
-        if token_array.len() <= 0 {
+        if token_array.is_empty() {
             println!("Query is invalid");
             std::process::exit(1);
         }
@@ -105,5 +99,5 @@ pub fn parse_ast(token_array: &mut VecDeque<Token>) -> ASTNode {
             operator,
         }))
     }
-    return left;
+    left
 }
