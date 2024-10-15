@@ -28,7 +28,7 @@ struct Cli {
     params: Option<String>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let content = if let Some(load) = cli.load.as_deref() {
@@ -47,25 +47,22 @@ fn main() {
                 acc + &line.expect("Couldn't read from stdin") + "\n"
             })
     };
+    let content = serde_json::from_str::<Vec<Value>>(&content)?;
+
     let query_string = cli.query.as_deref().unwrap_or_default();
 
-    let params = if let Some(params_list) = cli.params.as_deref() {
-        params_list.split(",").map(|x| x.trim()).collect()
-    } else {
-        Vec::new()
-    };
-
-    let v: VecDeque<Value> = serde_json::from_str(&content).expect("Couldn't parse to JSON");
+    let params = cli.params.unwrap_or_default();
+    let params = params.split(",").map(|x| x.trim()).collect::<Vec<_>>();
 
     if query_string.is_empty() && params.is_empty() {
         println!(
             "{}",
-            serde_json::to_string_pretty(&v).expect("Can't convert JSON to string")
+            serde_json::to_string_pretty(&content).expect("Can't convert JSON to string")
         );
     } else if params.is_empty() {
         let mut result_arr = VecDeque::new();
-        for obj in v.iter() {
             if eval_query(obj, query_string) {
+        for obj in &content {
                 result_arr.push_back(obj.clone());
             }
         }
@@ -76,7 +73,7 @@ fn main() {
         );
     } else if query_string.is_empty() {
         let mut result_arr = VecDeque::new();
-        for obj in v.iter() {
+        for obj in &content {
             let mut entry = serde_json::Map::new();
             for item in &params {
                 entry.insert(
@@ -92,8 +89,8 @@ fn main() {
         );
     } else {
         let mut result_arr = VecDeque::new();
-        for obj in v.iter() {
             if eval_query(obj, query_string) {
+        for obj in &content {
                 let mut entry = serde_json::Map::new();
                 for item in &params {
                     entry.insert(
@@ -109,4 +106,6 @@ fn main() {
             serde_json::to_string_pretty(&result_arr).expect("Can't convert JSON to string")
         );
     }
+
+    Ok(())
 }
