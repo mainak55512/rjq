@@ -2,11 +2,13 @@ mod helper;
 mod interpreter;
 mod lexer;
 mod parser;
+mod query;
 
 use clap::Parser;
 use helper::get_last_key;
 use helper::get_value_from_obj;
 use interpreter::eval_query;
+use query::Query;
 use serde_json::Value;
 use std::collections::VecDeque;
 use std::fs;
@@ -48,6 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let content = serde_json::from_str::<Vec<Value>>(&content)?;
 
     let query_string = cli.query.as_deref().unwrap_or_default();
+    let query = Query::new(query_string);
 
     let params = cli.params.unwrap_or_default();
     let params = params.split(",").map(|x| x.trim()).collect::<Vec<_>>();
@@ -59,8 +62,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     } else if params.is_empty() {
         let mut result_arr = VecDeque::new();
-            if eval_query(obj, query_string) {
         for obj in &content {
+            if eval_query(obj, &query) {
                 result_arr.push_back(obj.clone());
             }
         }
@@ -87,8 +90,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     } else {
         let mut result_arr = VecDeque::new();
-            if eval_query(obj, query_string) {
         for obj in &content {
+            if eval_query(obj, &query) {
                 let mut entry = serde_json::Map::new();
                 for item in &params {
                     entry.insert(

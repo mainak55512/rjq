@@ -2,7 +2,7 @@ use regex::Regex;
 use std::collections::VecDeque;
 use std::sync::LazyLock;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum TokenType {
     Number,
     String,
@@ -10,7 +10,7 @@ pub enum TokenType {
     Binary,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub val: String,

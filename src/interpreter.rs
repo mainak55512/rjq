@@ -142,17 +142,3 @@ fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
     }
     RuntimeType::Bool(false)
 }
-
-fn _evaluate_(obj: &Value, ast: &ASTNode) -> RuntimeType {
-    eval_ast_stmt(obj, ast)
-}
-
-pub fn eval_query(obj: &Value, query_string: &str) -> bool {
-    let mut tokens = tokenize(query_string);
-    let ast = parse_ast(&mut tokens);
-    if let RuntimeType::Bool(result) = _evaluate_(obj, &ast) {
-        result
-    } else {
-        false
-    }
-}
