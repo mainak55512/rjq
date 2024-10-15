@@ -186,6 +186,8 @@ output:
 
 Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/mainak55512/rjq/issues). 
 
+Checkout [Contributing page](./CONTRIBUTING.md) for contribution guidelines.
+
 ## Show your support
 
 Give a ⭐️ if this project helped you!
