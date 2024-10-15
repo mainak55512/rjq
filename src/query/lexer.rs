@@ -23,16 +23,11 @@ impl Token {
 }
 
 static MATCH_NUMBER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d+\.?\d+").unwrap());
-
-static MATCH_FIELD_STRING: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9._]+").unwrap());
-
+static MATCH_IDENT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9._]+").unwrap());
 static MATCH_STRING: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"^'(.*?)'"#).unwrap());
-
 static MATCH_BINARY_OPERATOR: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(^(!=)|^(<=)|^(>=)|^(=)|^(<)|^(>)|^(&&)|^(\|\|)|^(\+)|^(-))").unwrap()
 });
-
 static MATCH_PAREN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[()]").unwrap());
 
 pub(super) fn tokenize(source_string: &str) -> VecDeque<Token> {
@@ -45,7 +40,7 @@ pub(super) fn tokenize(source_string: &str) -> VecDeque<Token> {
         {
             cursor += val.len();
             tokens.push_back(Token::new(TokenType::Number, val.to_string()));
-        } else if let Some(val) = MATCH_FIELD_STRING
+        } else if let Some(val) = MATCH_IDENT
             .find(&source_string[cursor..])
             .map(|x| x.as_str())
         {
