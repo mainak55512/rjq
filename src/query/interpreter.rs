@@ -9,8 +9,8 @@ pub enum RuntimeType {
 
 pub(super) fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
     let kind = match ast {
-        ASTNode::PrimarySymbol(ref ast) => ast.kind.clone(),
-        ASTNode::BinaryExpr(ref ast) => ast.kind.clone(),
+        ASTNode::PrimarySymbol(ast) => ast.kind,
+        ASTNode::BinaryExpr(ast) => ast.kind,
         ASTNode::NoneType => LiteralType::NoneType,
     };
     match kind {
