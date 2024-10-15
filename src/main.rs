@@ -49,7 +49,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let query = Query::new(query_string);
 
     let params = cli.params.unwrap_or_default();
-    let params = params.split(",").map(|x| x.trim()).collect::<Vec<_>>();
+    let params = params
+        .split(",")
+        .map(|x| x.trim())
+        .filter(|x| !x.is_empty())
+        .collect::<Vec<_>>();
 
     if query_string.is_empty() && params.is_empty() {
         println!(
