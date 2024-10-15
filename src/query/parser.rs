@@ -34,6 +34,9 @@ pub struct BinaryExpr {
 }
 
 pub(super) fn parse_ast(tokens: &mut VecDeque<Token>) -> ASTNode {
+    if tokens.is_empty() {
+        return ASTNode::NoneType;
+    }
     let mut left = parse_binary_expr(tokens);
     if !tokens.is_empty() && tokens[0].val != "&&" && tokens[0].val != "||" {
         println!("Query is invalid");
