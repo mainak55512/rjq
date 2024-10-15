@@ -68,7 +68,7 @@ fn _eval_binary_expr(
                     .expect("Not a Number")
                     == right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => RuntimeType::Bool(get_value_from_obj(obj, left) == right),
+            _ => RuntimeType::Bool(get_value_from_obj(obj, left).to_string() == right.to_string()),
         },
         ">" => match right_node_type {
             LiteralType::NumericLiteral => RuntimeType::Bool(
@@ -118,7 +118,7 @@ fn _eval_binary_expr(
                     .expect("Not a Number")
                     != right.parse::<f64>().expect("Not a Number"),
             ),
-            _ => RuntimeType::Bool(get_value_from_obj(obj, left) != right),
+            _ => RuntimeType::Bool(get_value_from_obj(obj, left).to_string() != right.to_string()),
         },
         _ => RuntimeType::Bool(false),
     }
