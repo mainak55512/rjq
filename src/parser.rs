@@ -4,19 +4,19 @@ use crate::lexer::{Token, TokenType};
 
 #[derive(Debug, Clone)]
 pub enum LiteralType {
-    NUMERIC_LITERAL,
-    STRING_LITERAL,
-    BINARY_OPERATOR,
-    BINARY_EXPR,
-    LOGICAL_EXPR,
-    NONE_TYPE,
+    NumericLiteral,
+    StringLiteral,
+    BinaryOperator,
+    BinaryExpr,
+    LogicalExpr,
+    NoneType,
 }
 
 #[derive(Debug, Clone)]
 pub enum ASTNode {
     PrimarySymbol(PrimarySymbol),
     BinaryExpr(Box<BinaryExpr>),
-    NONE_TYPE,
+    NoneType,
 }
 
 #[derive(Debug, Clone)]
@@ -37,15 +37,15 @@ fn parse_primary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
     let tk: &TokenType = &token_array[0].token_type;
     match tk {
         TokenType::Number => ASTNode::PrimarySymbol(PrimarySymbol {
-            kind: LiteralType::NUMERIC_LITERAL,
+            kind: LiteralType::NumericLiteral,
             symbol: token_array.pop_front().expect("NaN").val,
         }),
         TokenType::String => ASTNode::PrimarySymbol(PrimarySymbol {
-            kind: LiteralType::STRING_LITERAL,
+            kind: LiteralType::StringLiteral,
             symbol: token_array.pop_front().expect("Invalid String").val,
         }),
         TokenType::Binary => ASTNode::PrimarySymbol(PrimarySymbol {
-            kind: LiteralType::BINARY_OPERATOR,
+            kind: LiteralType::BinaryOperator,
             symbol: token_array.pop_front().expect("Invalid Operator").val,
         }),
         TokenType::Paren => {
@@ -70,7 +70,7 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
         let operator = token_array.pop_front().expect("Invalid Operator").val;
         let right = parse_primary_expr(token_array);
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
-            kind: LiteralType::BINARY_EXPR,
+            kind: LiteralType::BinaryExpr,
             left,
             right,
             operator,
@@ -93,7 +93,7 @@ pub fn parse_ast(token_array: &mut VecDeque<Token>) -> ASTNode {
         }
         let right = parse_binary_expr(token_array);
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
-            kind: LiteralType::LOGICAL_EXPR,
+            kind: LiteralType::LogicalExpr,
             left,
             right,
             operator,
