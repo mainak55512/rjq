@@ -79,19 +79,19 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
     left
 }
 
-pub fn parse_ast(token_array: &mut VecDeque<Token>) -> ASTNode {
-    let mut left = parse_binary_expr(token_array);
-    if !token_array.is_empty() && token_array[0].val != "&&" && token_array[0].val != "||" {
+pub fn parse_ast(tokens: &mut VecDeque<Token>) -> ASTNode {
+    let mut left = parse_binary_expr(tokens);
+    if !tokens.is_empty() && tokens[0].val != "&&" && tokens[0].val != "||" {
         println!("Query is invalid");
         std::process::exit(1);
     }
-    while !token_array.is_empty() && (token_array[0].val == "&&" || token_array[0].val == "||") {
-        let operator = token_array.pop_front().expect("Empty operator").val;
-        if token_array.is_empty() {
+    while !tokens.is_empty() && (tokens[0].val == "&&" || tokens[0].val == "||") {
+        let operator = tokens.pop_front().expect("Empty operator").val;
+        if tokens.is_empty() {
             println!("Query is invalid");
             std::process::exit(1);
         }
-        let right = parse_binary_expr(token_array);
+        let right = parse_binary_expr(tokens);
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
             kind: LiteralType::LogicalExpr,
             left,
