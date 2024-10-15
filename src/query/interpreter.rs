@@ -2,6 +2,7 @@ use super::parser::{ASTNode, LiteralType};
 use crate::utils::get_value_from_obj;
 use serde_json::Value;
 
+#[derive(Debug)]
 pub enum RuntimeType {
     Element(ASTNode),
     Bool(bool),
