@@ -19,7 +19,8 @@ pub(super) fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
         LiteralType::BinaryExpr => eval_binary_expr(obj, ast),
         LiteralType::NumericLiteral => RuntimeType::Element(ast.clone()),
         LiteralType::StringLiteral => RuntimeType::Element(ast.clone()),
-        _ => RuntimeType::Bool(false),
+        LiteralType::BinaryOperator => RuntimeType::Bool(false),
+        LiteralType::NoneType => RuntimeType::Bool(true),
     }
 }
 

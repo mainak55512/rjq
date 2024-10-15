@@ -4,7 +4,6 @@ mod parser;
 
 use crate::query::parser::ASTNode;
 use interpreter::RuntimeType;
-use parser::parse_ast;
 use serde_json::Value;
 
 #[derive(Debug)]
@@ -15,7 +14,7 @@ pub struct Query {
 impl Query {
     pub fn new(query: &str) -> Self {
         let mut tokens = lexer::tokenize(query);
-        let ast = parse_ast(&mut tokens);
+        let ast = parser::parse_ast(&mut tokens);
         Self { ast }
     }
 
