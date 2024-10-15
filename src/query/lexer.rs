@@ -51,12 +51,10 @@ pub(super) fn tokenize(source_string: &str) -> VecDeque<Token> {
         {
             cursor += val.len();
             tokens.push_back(Token::new(TokenType::String, val.to_string()));
-        } else if let Some(val) = MATCH_STRING
-            .find(&source_string[cursor..])
-            .map(|x| x.as_str().replace("'", "\""))
-        {
-            cursor += val.len();
-            tokens.push_back(Token::new(TokenType::String, val));
+        } else if let Some(cap) = MATCH_STRING.captures(&source_string[cursor..]) {
+            let (full, [val]) = cap.extract();
+            cursor += full.len();
+            tokens.push_back(Token::new(TokenType::String, val.to_string()));
         } else if let Some(val) = MATCH_BINARY_OPERATOR
             .find(&source_string[cursor..])
             .map(|x| x.as_str())
