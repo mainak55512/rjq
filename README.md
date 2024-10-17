@@ -188,6 +188,10 @@ Contributions, issues and feature requests are welcome!<br />Feel free to check 
 
 Checkout [Contributing page](./CONTRIBUTING.md) for contribution guidelines.
 
+## Code of Conduct
+
+By participating in this project, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md). Please read it to understand your rights and responsibilities.
+
 ## Show your support
 
 Give a ⭐️ if this project helped you!
