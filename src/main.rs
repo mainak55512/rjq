@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     let content = if let Some(load) = cli.load.as_deref() {
-        fs::read_to_string(load).map_err(|err| err.to_string())?
+        fs::read_to_string(load).map_err(|_| "File not found or couldn't read from file")?
     } else {
         io::stdin()
             .lock()
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let content = serde_json::from_str::<Vec<Value>>(&content)?;
 
     let query_string = cli.query.as_deref().unwrap_or_default();
-    let query = Query::new(query_string);
+    let query = Query::new(query_string)?;
 
     let params = cli.params.unwrap_or_default();
     let params = params
@@ -66,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // apply the query and params to content.
     let mut output = Vec::new();
     for obj in &content {
-        if query.eval(obj) {
+        if query.eval(obj)? {
             output.push(filter(obj));
         }
     }

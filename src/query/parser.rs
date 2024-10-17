@@ -33,22 +33,22 @@ pub struct BinaryExpr {
     pub operator: String,
 }
 
-pub(super) fn parse_ast(tokens: &mut VecDeque<Token>) -> ASTNode {
+pub(super) fn parse_ast(
+    tokens: &mut VecDeque<Token>,
+) -> Result<ASTNode, Box<dyn std::error::Error>> {
     if tokens.is_empty() {
-        return ASTNode::NoneType;
+        return Ok(ASTNode::NoneType);
     }
-    let mut left = parse_binary_expr(tokens);
+    let mut left = parse_binary_expr(tokens)?;
     if !tokens.is_empty() && tokens[0].val != "&&" && tokens[0].val != "||" {
-        println!("Query is invalid");
-        std::process::exit(1);
+        return Err("Query is invalid".into());
     }
     while !tokens.is_empty() && (tokens[0].val == "&&" || tokens[0].val == "||") {
-        let operator = tokens.pop_front().expect("Empty operator").val;
+        let operator = tokens.pop_front().ok_or("Empty operator")?.val;
         if tokens.is_empty() {
-            println!("Query is invalid");
-            std::process::exit(1);
+            return Err("Query is invalid".into());
         }
-        let right = parse_binary_expr(tokens);
+        let right = parse_binary_expr(tokens)?;
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
             kind: LiteralType::LogicalExpr,
             left,
@@ -56,35 +56,39 @@ pub(super) fn parse_ast(tokens: &mut VecDeque<Token>) -> ASTNode {
             operator,
         }))
     }
-    left
+    Ok(left)
 }
 
-fn parse_primary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
+fn parse_primary_expr(
+    token_array: &mut VecDeque<Token>,
+) -> Result<ASTNode, Box<dyn std::error::Error>> {
     let tk = &token_array[0].token_type;
     match tk {
-        TokenType::Number => ASTNode::PrimarySymbol(PrimarySymbol {
+        TokenType::Number => Ok(ASTNode::PrimarySymbol(PrimarySymbol {
             kind: LiteralType::NumericLiteral,
-            symbol: token_array.pop_front().expect("NaN").val,
-        }),
-        TokenType::String => ASTNode::PrimarySymbol(PrimarySymbol {
+            symbol: token_array.pop_front().ok_or("Not a Number")?.val,
+        })),
+        TokenType::String => Ok(ASTNode::PrimarySymbol(PrimarySymbol {
             kind: LiteralType::StringLiteral,
-            symbol: token_array.pop_front().expect("Invalid String").val,
-        }),
-        TokenType::Binary => ASTNode::PrimarySymbol(PrimarySymbol {
+            symbol: token_array.pop_front().ok_or("Invalid String")?.val,
+        })),
+        TokenType::Binary => Ok(ASTNode::PrimarySymbol(PrimarySymbol {
             kind: LiteralType::BinaryOperator,
-            symbol: token_array.pop_front().expect("Invalid Operator").val,
-        }),
+            symbol: token_array.pop_front().ok_or("Invalid Operator")?.val,
+        })),
         TokenType::Paren => {
             token_array.pop_front();
-            let value = parse_ast(token_array);
+            let value = parse_ast(token_array)?;
             token_array.pop_front();
-            value
+            Ok(value)
         }
     }
 }
 
-fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
-    let mut left = parse_primary_expr(token_array);
+fn parse_binary_expr(
+    token_array: &mut VecDeque<Token>,
+) -> Result<ASTNode, Box<dyn std::error::Error>> {
+    let mut left = parse_primary_expr(token_array)?;
     while !token_array.is_empty()
         && (token_array[0].val == "="
             || token_array[0].val == ">="
@@ -93,8 +97,8 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
             || token_array[0].val == "<"
             || token_array[0].val == "!=")
     {
-        let operator = token_array.pop_front().expect("Invalid Operator").val;
-        let right = parse_primary_expr(token_array);
+        let operator = token_array.pop_front().ok_or("Invalid Operator")?.val;
+        let right = parse_primary_expr(token_array)?;
         left = ASTNode::BinaryExpr(Box::new(BinaryExpr {
             kind: LiteralType::BinaryExpr,
             left,
@@ -102,5 +106,5 @@ fn parse_binary_expr(token_array: &mut VecDeque<Token>) -> ASTNode {
             operator,
         }))
     }
-    left
+    Ok(left)
 }

@@ -8,7 +8,10 @@ pub enum RuntimeType {
     Bool(bool),
 }
 
-pub(super) fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
+pub(super) fn eval_ast_stmt(
+    obj: &Value,
+    ast: &ASTNode,
+) -> Result<RuntimeType, Box<dyn std::error::Error>> {
     let kind = match ast {
         ASTNode::PrimarySymbol(ast) => ast.kind,
         ASTNode::BinaryExpr(ast) => ast.kind,
@@ -17,29 +20,32 @@ pub(super) fn eval_ast_stmt(obj: &Value, ast: &ASTNode) -> RuntimeType {
     match kind {
         LiteralType::LogicalExpr => eval_logical_expr(obj, ast),
         LiteralType::BinaryExpr => eval_binary_expr(obj, ast),
-        LiteralType::NumericLiteral => RuntimeType::Element(ast.clone()),
-        LiteralType::StringLiteral => RuntimeType::Element(ast.clone()),
-        LiteralType::BinaryOperator => RuntimeType::Bool(false),
-        LiteralType::NoneType => RuntimeType::Bool(true),
+        LiteralType::NumericLiteral => Ok(RuntimeType::Element(ast.clone())),
+        LiteralType::StringLiteral => Ok(RuntimeType::Element(ast.clone())),
+        LiteralType::BinaryOperator => Ok(RuntimeType::Bool(false)),
+        LiteralType::NoneType => Ok(RuntimeType::Bool(true)),
     }
 }
 
-fn eval_logical_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
+fn eval_logical_expr(
+    obj: &Value,
+    ast: &ASTNode,
+) -> Result<RuntimeType, Box<dyn std::error::Error>> {
     if let ASTNode::BinaryExpr(ref ast) = ast {
-        let lhs = eval_ast_stmt(obj, &ast.left);
-        let rhs = eval_ast_stmt(obj, &ast.right);
-        return _eval_logical_expr(lhs, rhs, &ast.operator);
+        let lhs = eval_ast_stmt(obj, &ast.left)?;
+        let rhs = eval_ast_stmt(obj, &ast.right)?;
+        return Ok(_eval_logical_expr(lhs, rhs, &ast.operator));
     }
-    RuntimeType::Bool(false)
+    Ok(RuntimeType::Bool(false))
 }
 
-fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> RuntimeType {
+fn eval_binary_expr(obj: &Value, ast: &ASTNode) -> Result<RuntimeType, Box<dyn std::error::Error>> {
     if let ASTNode::BinaryExpr(ref ast) = ast {
-        let lhs = eval_ast_stmt(obj, &ast.left);
-        let rhs = eval_ast_stmt(obj, &ast.right);
+        let lhs = eval_ast_stmt(obj, &ast.left)?;
+        let rhs = eval_ast_stmt(obj, &ast.right)?;
         return _eval_binary_expr(obj, lhs, rhs, &ast.operator);
     }
-    RuntimeType::Bool(false)
+    Ok(RuntimeType::Bool(false))
 }
 
 fn _eval_binary_expr(
@@ -47,7 +53,7 @@ fn _eval_binary_expr(
     lhs: RuntimeType,
     rhs: RuntimeType,
     operator: &str,
-) -> RuntimeType {
+) -> Result<RuntimeType, Box<dyn std::error::Error>> {
     let left = if let RuntimeType::Element(ASTNode::PrimarySymbol(val)) = &lhs {
         &val.symbol
     } else {
@@ -61,66 +67,46 @@ fn _eval_binary_expr(
 
     match operator {
         "=" => match right_node_type {
-            LiteralType::NumericLiteral => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
-                    .to_string()
-                    .parse::<f64>()
-                    .expect("Not a Number")
-                    == right.parse::<f64>().expect("Not a Number"),
-            ),
-            _ => RuntimeType::Bool(get_value_from_obj(obj, left) == right),
+            LiteralType::NumericLiteral => Ok(RuntimeType::Bool(
+                get_value_from_obj(obj, left).to_string().parse::<f64>()?
+                    == right.parse::<f64>()?,
+            )),
+            _ => Ok(RuntimeType::Bool(get_value_from_obj(obj, left) == right)),
         },
         ">" => match right_node_type {
-            LiteralType::NumericLiteral => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
-                    .to_string()
-                    .parse::<f64>()
-                    .expect("Not a Number")
-                    > right.parse::<f64>().expect("Not a Number"),
-            ),
-            _ => RuntimeType::Bool(false),
+            LiteralType::NumericLiteral => Ok(RuntimeType::Bool(
+                get_value_from_obj(obj, left).to_string().parse::<f64>()? > right.parse::<f64>()?,
+            )),
+            _ => Ok(RuntimeType::Bool(false)),
         },
         "<" => match right_node_type {
-            LiteralType::NumericLiteral => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
-                    .to_string()
-                    .parse::<f64>()
-                    .expect("Not a Number")
-                    < right.parse::<f64>().expect("Not a Number"),
-            ),
-            _ => RuntimeType::Bool(false),
+            LiteralType::NumericLiteral => Ok(RuntimeType::Bool(
+                get_value_from_obj(obj, left).to_string().parse::<f64>()? < right.parse::<f64>()?,
+            )),
+            _ => Ok(RuntimeType::Bool(false)),
         },
         ">=" => match right_node_type {
-            LiteralType::NumericLiteral => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
-                    .to_string()
-                    .parse::<f64>()
-                    .expect("Not a Number")
-                    >= right.parse::<f64>().expect("Not a Number"),
-            ),
-            _ => RuntimeType::Bool(false),
+            LiteralType::NumericLiteral => Ok(RuntimeType::Bool(
+                get_value_from_obj(obj, left).to_string().parse::<f64>()?
+                    >= right.parse::<f64>()?,
+            )),
+            _ => Ok(RuntimeType::Bool(false)),
         },
         "<=" => match right_node_type {
-            LiteralType::NumericLiteral => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
-                    .to_string()
-                    .parse::<f64>()
-                    .expect("Not a Number")
-                    <= right.parse::<f64>().expect("Not a Number"),
-            ),
-            _ => RuntimeType::Bool(false),
+            LiteralType::NumericLiteral => Ok(RuntimeType::Bool(
+                get_value_from_obj(obj, left).to_string().parse::<f64>()?
+                    <= right.parse::<f64>()?,
+            )),
+            _ => Ok(RuntimeType::Bool(false)),
         },
         "!=" => match right_node_type {
-            LiteralType::NumericLiteral => RuntimeType::Bool(
-                get_value_from_obj(obj, left)
-                    .to_string()
-                    .parse::<f64>()
-                    .expect("Not a Number")
-                    != right.parse::<f64>().expect("Not a Number"),
-            ),
-            _ => RuntimeType::Bool(get_value_from_obj(obj, left) != right),
+            LiteralType::NumericLiteral => Ok(RuntimeType::Bool(
+                get_value_from_obj(obj, left).to_string().parse::<f64>()?
+                    != right.parse::<f64>()?,
+            )),
+            _ => Ok(RuntimeType::Bool(get_value_from_obj(obj, left) != right)),
         },
-        _ => RuntimeType::Bool(false),
+        _ => Ok(RuntimeType::Bool(false)),
     }
 }
 

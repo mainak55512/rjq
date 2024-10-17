@@ -12,17 +12,17 @@ pub struct Query {
 }
 
 impl Query {
-    pub fn new(query: &str) -> Self {
+    pub fn new(query: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let mut tokens = lexer::tokenize(query);
-        let ast = parser::parse_ast(&mut tokens);
-        Self { ast }
+        let ast = parser::parse_ast(&mut tokens)?;
+        Ok(Self { ast })
     }
 
-    pub fn eval(&self, obj: &Value) -> bool {
-        if let RuntimeType::Bool(result) = interpreter::eval_ast_stmt(obj, &self.ast) {
-            result
+    pub fn eval(&self, obj: &Value) -> Result<bool, Box<dyn std::error::Error>> {
+        if let RuntimeType::Bool(result) = interpreter::eval_ast_stmt(obj, &self.ast)? {
+            Ok(result)
         } else {
-            false
+            Ok(false)
         }
     }
 }
